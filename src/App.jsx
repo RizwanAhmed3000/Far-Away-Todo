@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
@@ -6,8 +6,25 @@ function App() {
   const [input, setInput] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [todolist, setTodolist] = useState([]);
+  const [itemsPacked, setItemsPacked] = useState([])
   console.log(input, "==> input");
   console.log(quantity, "==> quantity");
+
+  useEffect(() => {
+    if (todolist.length > 0) {
+      const packed = todolist.filter((item) => item.isPacked)
+      setItemsPacked(packed)
+    } else {
+      setItemsPacked([])
+    }
+  }, [todolist])
+
+  function clearListHandler() {
+    const confirm = window.confirm("Do you want to delete all the itmes in the list?")
+    if (confirm) {
+      setTodolist([])
+    }
+  }
 
   function addItemHandler() {
     if (!input) {
@@ -23,6 +40,11 @@ function App() {
     }
   }
   // console.log(todolist, "==< todolist after");
+  function packItemsHandler(index) {
+    const updatedList = [...todolist];
+    updatedList[index].isPacked = !updatedList[index].isPacked;
+    setTodolist(updatedList)
+  }
 
   return (
     <div className="farAwayTodo">
@@ -39,14 +61,16 @@ function App() {
           }
         </select>
         <input type="text" placeholder='Add items...' className='input' value={input} onChange={(e) => setInput(e.target.value)} />
-        <button className='btn' onClick={()=> addItemHandler()}>Add</button>
+        <button className='btn' onClick={() => addItemHandler()}>Add</button>
       </div>
       <div className="mainBody">
         {
-          todolist.map((item, index)=> (
+          todolist.map((item, index) => (
             <div key={index}>
-              <input type="checkbox" />
-              <span>{item.item}</span>
+              <input type="checkbox" onChange={() => {
+                packItemsHandler(index)
+              }} checked={item.isPacked} />
+              <span style={{ textDecoration: item.isPacked ? "line-through" : "none" }}>{item.item}</span>
             </div>
           ))
         }
@@ -58,10 +82,10 @@ function App() {
             <option value="">Sort by description</option>
             <option value="">Sort by completed</option>
           </select>
-          <button className='btn'>Clear list</button>
+          <button className='btn' onClick={clearListHandler}>Clear list</button>
         </div>
         <div className="footerBottom">
-          <h3>You have 0 items on your list, and you already Packed 0 (0%)</h3>
+          <h3>You have {todolist.length} items on your list, and you already Packed {itemsPacked.length} {`(${(itemsPacked.length / todolist.length) * 100}%)` || `0%`}</h3>
         </div>
       </div>
     </div>
